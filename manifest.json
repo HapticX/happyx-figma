@@ -1,0 +1,20 @@
+{
+  "name": "HappyX",
+  "id": "1297820511939624722",
+  "api": "1.0.0",
+  "main": "code.js",
+  "enableProposedApi": false,
+  "editorType": [
+    "figma"
+  ],
+  "ui": "ui.html",
+  "networkAccess": {
+    "allowedDomains": [
+      "https://github.com",
+      "https://hapticx.github.io",
+      "https://fonts.googleapis.com",
+      "https://fonts.gstatic.com",
+      "https://cdnjs.cloudflare.com"
+    ]
+  }
+}

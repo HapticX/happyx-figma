@@ -1,0 +1,89 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/nim.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600&display=swap');
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/tokyo-night-dark.min.css">
+<style>
+  .happyx-main {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  body {
+    margin: 0;
+    background-color: #212121;
+    color: #fefefe;
+    padding: 1rem;
+    font-family: 'Fira Sans', sans-serif;
+  }
+  img {
+    width: 50%;
+  }
+  button {
+    width: 100%;
+    border-radius: .5rem;
+    border: none;
+    background-color: #ce9cee;
+    transition: all;
+    transition-timing-function: ease-in-out;
+    transition-duration: .15s;
+    padding: .2rem .8rem;
+    font-weight: 700;
+    font-size: x-large;
+    cursor: pointer;
+  }
+  button:hover {
+    background-color: #deacfe;
+  }
+  button:active {
+    background-color: #feccff;
+  }
+  .buttons {
+    display: flex;
+    gap: 2rem;
+    width: 100%;
+  }
+  .code-container {
+    width: 100%;
+  }
+
+  code {
+    border-radius: .5rem;
+  }
+</style>
+<div class="happyx-main">
+  <img src="https://hapticx.github.io/happyx/public/logo.svg" alt="HappyX logo">
+  <h1>Code converter</h1>
+  <div class="buttons">
+    <button onclick="toHappyxComponent()">
+      To component
+    </button>
+  </div>
+  <pre class="code-container">
+    <code id="generated_code" language="nim" class="language-nim">
+##CODE##
+    </code>
+  </pre>
+  <script>
+    const code = document.getElementById("generated_code");
+
+    function toHappyxComponent() {
+      window.parent.postMessage({
+        pluginMessage: {
+          target: 'frame'
+        }
+      }, '*')
+    }
+
+    hljs.highlightAll();
+
+    onmessage = (msg) => {
+      code.innerHTML = msg.data.pluginMessage;
+
+      hljs.highlightAll();
+    }
+  </script>
+</div>
