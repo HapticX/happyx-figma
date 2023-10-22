@@ -7,13 +7,15 @@
 
 
 ### TODO:
-- Make paint fills;
+- Make paint fills 🎨;
   - [x] SolidPaint;
   - [x] ImagePaint;
   - [ ] GradientPaint;
   - [ ] ImageFilter;
   - [ ] ColorStop;
   - [ ] VideoPaint.
-- Make Stroke caps;
-- Make Stroke joins;
-- Make Stroke aligns.
+- Make Stroke caps ✨;
+- Make Stroke joins 🌟;
+- Make Stroke aligns 💫;
+- Testing 🧪;
+- Publish 📢.
