@@ -83,8 +83,8 @@ function strAttr(name: string, value: string) {
   attributes['"' + name + '"'] = value;
 }
 
-function int(num: number): number {
-  return Math.floor(num);
+function int(num: number, fixed: number = 0): number {
+  return Number(num.toFixed(fixed));
 }
 
 function child(text: string) {
@@ -190,13 +190,13 @@ async function visit(node: any, first: boolean = true, inContainer: boolean = fa
   if (node.type !== "VECTOR") {
     if (!first && !inContainer) {
       cls("absolute");
-      cls(`left-[${int(node.x - at.x)}px]`);
-      cls(`top-[${int(node.y - at.y)}px]`);
+      cls(`left-[${int(node.x - at.x, 2)}px]`);
+      cls(`top-[${int(node.y - at.y, 2)}px]`);
     }
-    cls(`w-[${int(node.width)}px]`);
-    cls(`h-[${int(node.height)}px]`);
+    cls(`w-[${int(node.width, 2)}px]`);
+    cls(`h-[${int(node.height, 2)}px]`);
   } else {
-    attr("transform", `translate(${int(node.x - at.x)}, ${int(node.y - at.y)})`)
+    attr("transform", `translate(${int(node.x - at.x, 2)}, ${int(node.y - at.y, 2)})`)
   }
 
   if ('rotation' in node && node.rotation !== 0.0) {
