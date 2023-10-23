@@ -14,8 +14,6 @@
   - [ ] ImageFilter;
   - [ ] ColorStop;
   - [ ] VideoPaint.
-- Make Stroke caps ✨;
-- Make Stroke joins 🌟;
 - Make Stroke aligns 💫;
 - Testing 🧪;
 - Publish 📢.

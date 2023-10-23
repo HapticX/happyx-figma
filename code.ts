@@ -53,8 +53,8 @@ let fontStyleMapping: any = {
 
 
 var text = "";
-var childText = "";
 var tagName = "";
+var nodeChildren: Array<string> = [];
 var classes: Array<string> = [];
 var styles: Array<string> = [];
 var attributes: any = {};
@@ -79,8 +79,16 @@ function attr(name: string, value: string) {
   attributes[name] = value;
 }
 
+function strAttr(name: string, value: string) {
+  attributes['"' + name + '"'] = value;
+}
+
 function int(num: number): number {
   return Math.floor(num);
+}
+
+function child(text: string) {
+  nodeChildren.push(text);
 }
 
 
@@ -104,7 +112,7 @@ function fillText(hasChildren: boolean = true) {
     text += `${twoDots}\n`
   }
   indent++;
-  text += childText
+  text += nodeChildren.join("");
 }
 
 
@@ -121,7 +129,7 @@ function visitFill(fill: SolidPaint | ImagePaint, nodeType: string) {
 function visitStroke(fill: Paint, nodeType: string) {
   if ('color' in fill && fill.color != undefined) {
     if (nodeType === "VECTOR") {
-      cls(`fill-[${toHtmlColor(fill.color)}]`);
+      cls(`stroke-[${toHtmlColor(fill.color)}]`);
     } else {
       cls(`border-[${toHtmlColor(fill.color)}]`);
     }
@@ -149,27 +157,47 @@ function visitEffect(effect: Effect) {
 async function visit(node: any, first: boolean = true, inContainer: boolean = false) {
   if (!node.visible || node.name.includes('.ignore')) return;
 
+  nodeChildren = [];
   classes = [];
   styles = [];
+  attributes = {};
 
   switch (node.type) {
     case "VECTOR":
-      tagName = `tSvg`;
+      tagName = `tPath`;
       break;
     default:
       tagName = `tDiv`;
       break;
   }
-  childText = ""
   indent += 1;
+  let isVectorFrame = true;
 
-  if (!first && !inContainer) {
-    cls("absolute");
-    cls(`left-[${int(node.x - at.x)}px]`);
-    cls(`top-[${int(node.y - at.y)}px]`);
+  if (node.children !== undefined) {
+    node.children.forEach((e: any) => {
+      if (e.type !== "VECTOR") {
+        isVectorFrame = false;
+      }
+    })
+    if (isVectorFrame) {
+      cls("fill-transparent")
+      tagName = "tSvg"
+    }
+  } else {
+    isVectorFrame = false;
   }
-  cls(`w-[${int(node.width)}px]`);
-  cls(`h-[${int(node.height)}px]`);
+
+  if (node.type !== "VECTOR") {
+    if (!first && !inContainer) {
+      cls("absolute");
+      cls(`left-[${int(node.x - at.x)}px]`);
+      cls(`top-[${int(node.y - at.y)}px]`);
+    }
+    cls(`w-[${int(node.width)}px]`);
+    cls(`h-[${int(node.height)}px]`);
+  } else {
+    attr("transform", `translate(${int(node.x - at.x)}, ${int(node.y - at.y)})`)
+  }
 
   if ('rotation' in node && node.rotation !== 0.0) {
     cls(`rotate-[${node.rotation.toFixed(2)}deg]`);
@@ -187,12 +215,12 @@ async function visit(node: any, first: boolean = true, inContainer: boolean = fa
   // }
 
   if (node.type == "INSTANCE") {
-    childText += ind() + `image ${node.name + ".png"}\n`;
+    child(ind() + `image ${node.name + ".png"}\n`);
     indent -= 1;
     return;
   }
   if (node.exportSettings.length > 0) {
-    childText += ind() + `image ${node.name + ".png"}\n`;
+    child(ind() + `image ${node.name + ".png"}\n`);
     indent -= 1;
     return;
   }
@@ -200,24 +228,29 @@ async function visit(node: any, first: boolean = true, inContainer: boolean = fa
   if ('vectorPaths' in node) {
     indent++;
     node.vectorPaths.forEach((e: any) => {
-      childText += ind() + `tPath(d = "${e.data}", "fill-rule" = "${e.windingRule.toString().toLowerCase()}")\n`;
+      strAttr("d", e.data);
+      strAttr("fill-rule", e.windingRule.toString().toLowerCase());
     });
     indent--;
   }
 
+  // FILL
   if (node.fills != undefined && node.fills != figma.mixed) {
     for (let fill of node.fills) {
-      console.log(fill);
       visitFill(fill, node.type);
       
+      // ImagePaint
       if ('imageHash' in fill && fill.imageHash !== undefined) {
         tagName = "tImg";
         const img = await figma.getImageByHash(fill.imageHash).getBytesAsync();
         attr("src", "data:image/jpeg;base64," + figma.base64Encode(img));
       }
+      // Gradient Paint
+
     }
   }
 
+  // STROKE
   if (node.strokes != undefined && node.strokes != figma.mixed) {
     for (let stroke of node.strokes) {
       visitStroke(stroke, node.type);
@@ -235,6 +268,20 @@ async function visit(node: any, first: boolean = true, inContainer: boolean = fa
           cls(`border-r-[${int(node.strokeRightWeight)}px]`);
       } else if (node.strokeWeight > 0) {
         cls(`border-[${int(node.strokeWeight)}px]`);
+      }
+    }
+    if (node.strokeCap !== "NONE" && node.type === "VECTOR") {
+      if (node.strokeCap === "ROUND") {
+        strAttr("stroke-linecap", "round");
+      } else if (node.strokeCap === "SQUARE") {
+        strAttr("stroke-linecap", "square");
+      }
+    }
+    if (node.strokeJoin !== "MITER" && node.type === "VECTOR") {
+      if (node.strokeCap === "ROUND") {
+        strAttr("stroke-linejoin", "round");
+      } else if (node.strokeCap === "BEVEL") {
+        strAttr("stroke-linejoin", "bevel");
       }
     }
   }
@@ -336,7 +383,7 @@ async function visit(node: any, first: boolean = true, inContainer: boolean = fa
   }
   
   if (node.type === "TEXT") {
-    childText += ind() + JSON.stringify(node.characters) + "\n";
+    child(ind() + JSON.stringify(node.characters) + "\n");
   }
 
   if ('children' in node && node.children.length !== 0) {
@@ -354,7 +401,7 @@ async function visit(node: any, first: boolean = true, inContainer: boolean = fa
     if (node.type == "GROUP") {
       at = atStack.pop();
     }
-  } else if (childText === "") {
+  } else if (nodeChildren.length === 0) {
     fillText(false);
   } else {
     fillText(true);
